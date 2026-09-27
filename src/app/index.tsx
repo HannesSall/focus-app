@@ -1,9 +1,13 @@
+import { Link } from "expo-router";
 import { Text, View, StyleSheet } from "react-native";
 
 export default function Index() {
+  const score: number = 0; 
   return (
     <View style={styles.container}>
-      <Text>Edit src/app/index.tsx to edit this screen.</Text>
+      <Text>Fokus</Text>
+      <Text>Idag har du fått ihop {score}poäng</Text>
+  <Link href={`/setup`}>Sätt up en timer</Link>
     </View>
   );
 }
