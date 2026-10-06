@@ -1,7 +1,7 @@
-interface focusSession {
+export interface FocusSession {
   id: string;
   goal: string;
-  durationsMin: number;
+  durationMin: number;
   startedAt: number;
-  goalCompleted: boolean;
+  goalCompleted?: boolean;
 }
