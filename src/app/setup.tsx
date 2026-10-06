@@ -62,9 +62,9 @@ export default function Setup() {
       {/* TEST: syns bara i utvecklingsläge (__DEV__), aldrig i en färdig app */}
       {__DEV__ && (
         <Pressable
-          onPress={() => startSession(10 / 60, goal.trim() || "Testpass")}
+          onPress={() => startSession(1, goal.trim() || "Testpass")}
         >
-          <Text style={styles.text}>Testa 10 s</Text>
+          <Text style={styles.text}>Testa 1 min</Text>
         </Pressable>
       )}
     </View>
