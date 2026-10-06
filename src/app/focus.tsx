@@ -5,12 +5,13 @@ import { StyleSheet, Text, View } from "react-native";
 
 import Timer from "@/components/timer";
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { FLIP_PENALTY, LEAVE_PENALTY } from "@/utils/score";
 
-// spelreglerna medan timern går
+// spelreglerna medan timern går (avdragen hämtas från score.ts så att de alltid stämmer)
 const RULES = [
   { text: "Lägg telefonen med skärmen nedåt", points: "" },
-  { text: "Vänder du upp telefonen", points: "−3" },
-  { text: "Lämnar du appen i mer än 10 s", points: "−10" },
+  { text: "Vänder du upp telefonen", points: `−${FLIP_PENALTY}` },
+  { text: "Lämnar du appen i mer än 10 s", points: `−${LEAVE_PENALTY}` },
   { text: "Varje hel minut du gjort det du skulle", points: "+1" },
 ];
 
