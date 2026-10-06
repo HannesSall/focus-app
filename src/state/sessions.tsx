@@ -8,6 +8,8 @@ type SessionsContextValue = {
     createSession: (goal: string, durationMin: number) => string;
     getSession: (id: string) => FocusSession | undefined;
     completeSession: (id: string, goalCompleted: boolean) => void;
+    addFlip: (id: string) => void;
+    addLeave: (id: string) => void;
 };
 
 // 1. Lådan. null = ingen Provider har fyllt den än
@@ -25,6 +27,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
             goal,
             durationMin,
             startedAt: Date.now(),
+            flips: 0,
+            leaves: 0,
         };
 
         // ny lista: alla gamla pass + det nya sist
@@ -46,8 +50,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         );
     }
 
+    // Avdrag: telefonen vändes upp (anropas av sensorn i Fas 3)
+    function addFlip(id: string) {
+        setSessions((prev) =>
+            prev.map((session) => (session.id === id ? { ...session, flips: session.flips + 1 } : session)),
+        );
+    }
+
+    // Avdrag: man lämnade appen (anropas i Fas 2)
+    function addLeave(id: string) {
+        setSessions((prev) =>
+            prev.map((session) => (session.id === id ? { ...session, leaves: session.leaves + 1 } : session)),
+        );
+    }
+
     return (
-        <SessionsContext.Provider value={{ sessions, createSession, getSession, completeSession }}>
+        <SessionsContext.Provider
+            value={{ sessions, createSession, getSession, completeSession, addFlip, addLeave }}
+        >
             {children}
         </SessionsContext.Provider>
     );
