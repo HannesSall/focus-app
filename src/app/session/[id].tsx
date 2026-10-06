@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 import { useSessions } from "@/state/sessions";
+import { calculateScore, getBasePoints, getPenaltyPoints } from "@/utils/score";
 
 export default function SessionResult() {
   // adressen säger VILKET pass, lådan har resten
@@ -56,6 +57,13 @@ export default function SessionResult() {
           <Text style={[styles.feedback, goalCompleted ? styles.success : styles.danger]}>
             {goalCompleted ? "Snyggt jobbat! 🎉" : "Nästa gång! 💪"}
           </Text>
+
+          {/* poängen för passet, uträknad med reglerna i score.ts */}
+          <View style={styles.scoreBox}>
+            <Text style={styles.scoreRow}>Minuter: +{getBasePoints(session)}</Text>
+            <Text style={styles.scoreRow}>Avdrag: −{getPenaltyPoints(session)}</Text>
+            <Text style={styles.scoreTotal}>Totalt: {calculateScore(session)} poäng</Text>
+          </View>
           <Pressable style={styles.homeButton} onPress={() => router.replace("/")}>
             <Text style={styles.homeButtonText}>Till start</Text>
           </Pressable>
@@ -120,6 +128,23 @@ const styles = StyleSheet.create({
   },
   danger: {
     color: colors.danger,
+  },
+  scoreBox: {
+    alignSelf: "stretch",
+    padding: spacing.md,
+    gap: spacing.xs,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+  },
+  scoreRow: {
+    color: colors.textMuted,
+    fontSize: fontSize.md,
+  },
+  scoreTotal: {
+    marginTop: spacing.sm,
+    color: colors.text,
+    fontSize: fontSize.lg,
+    fontWeight: "700",
   },
   homeButton: {
     marginTop: spacing.lg,
