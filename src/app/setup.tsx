@@ -2,33 +2,65 @@
 
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
 
 export default function Setup() {
   const [durationMin, setDurationMin] = useState(25);
 
+  const [goal, setGoal] = useState<string>("");
+
+  // räknas fram: tomt mål (eller bara mellanslag) → går inte att starta
+  const canStart = goal.trim() !== "";
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Setup meny</Text>
-      <Text style={styles.text}>Vald tid: {durationMin} min</Text>
+      <Text style={styles.title}>Nytt pass</Text>
 
+      <Text style={styles.label}>Mål</Text>
+      <TextInput
+        style={styles.input}
+        value={goal}
+        onChangeText={setGoal}
+        placeholder="Vad är målet under fokustiden?"
+        placeholderTextColor={colors.textMuted}
+      />
+
+      <Text style={styles.label}>Tid: {durationMin} min</Text>
       <View style={styles.row}>
-        {[5,10,15,20,25,30].map((_, index) => <Pressable key={index} style={styles.timeButton} onPress={() => setDurationMin((index +1) * 5)}>
-          <Text style={styles.timeButtonText}>{(index +1) * 5} min</Text>
-        </Pressable>)}
+        {[5, 10, 15, 20, 25, 30].map((minutes) => (
+          <Pressable
+            key={minutes}
+            style={[styles.timeButton, minutes === durationMin && styles.timeButtonSelected]}
+            onPress={() => setDurationMin(minutes)}
+          >
+            <Text style={styles.timeButtonText}>{minutes} min</Text>
+          </Pressable>
+        ))}
       </View>
 
       <Pressable
-        style={styles.startButton}
+        style={[styles.startButton, !canStart && styles.startButtonDisabled]}
+        disabled={!canStart}
         onPress={() =>
-          router.push({ pathname: "/focus", params: { durationMs: durationMin * 60000 } })
+          router.push({ pathname: "/focus", params: { durationMs: durationMin * 60000, goal: goal.trim() } })
         }
       >
         <Text style={styles.startButtonText}>Starta timer</Text>
       </Pressable>
+      {!canStart && <Text style={styles.hint}>Skriv ett mål för att kunna starta</Text>}
+
+      {/* TEST: syns bara i utvecklingsläge (__DEV__), aldrig i en färdig app */}
+      {__DEV__ && (
+        <Pressable
+          onPress={() =>
+            router.push({ pathname: "/focus", params: { durationMs: 10000, goal: goal || "Testpass" } })
+          }
+        >
+          <Text style={styles.text}>Testa 10 s</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -49,6 +81,27 @@ const styles = StyleSheet.create({
   text: {
     color: colors.textMuted,
     fontSize: fontSize.md,
+  },
+  label: {
+    alignSelf: "stretch",
+    marginTop: spacing.md,
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
+  input: {
+    alignSelf: "stretch",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    fontSize: fontSize.md,
+  },
+  hint: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
   },
   // tidsknapparna bredvid varandra, radbryts om de inte får plats
   row: {
@@ -79,6 +132,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
     backgroundColor: colors.primary,
+  },
+  // avstängd startknapp: grå och genomskinlig
+  startButtonDisabled: {
+    backgroundColor: colors.surfaceSelected,
+    opacity: 0.5,
   },
   startButtonText: {
     color: colors.background,
