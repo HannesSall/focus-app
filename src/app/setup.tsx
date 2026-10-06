@@ -23,7 +23,7 @@ export default function Setup() {
         style={styles.input}
         value={goal}
         onChangeText={setGoal}
-        placeholder="Vad är målet under fokustiden?"
+        placeholder="Vad är målet under fokustimer?"
         placeholderTextColor={colors.textMuted}
       />
 
