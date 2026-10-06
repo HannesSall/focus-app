@@ -1,12 +1,13 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize } from "@/constants/theme";
 
 export default function Timer() {
-  const params = useLocalSearchParams<{ durationMs: string }>();
+  const params = useLocalSearchParams<{ durationMs: string, goal: string }>();
   const durationMs = Number(params.durationMs);
+  const goal = params.goal;
 
   // sparas en gång när sidan öppnas
   const [startAt] = useState(Date.now());
@@ -23,6 +24,7 @@ export default function Timer() {
       // tiden är slut → sluta ticka
       if (seconds <= 0) {
         clearInterval(id);
+        router.push({ pathname: "/session/[id]", params: { id: startAt, goal} })
       }
     }, 100);
     return () => {
