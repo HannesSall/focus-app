@@ -24,7 +24,7 @@ export default function Timer() {
       // tiden är slut → sluta ticka
       if (seconds <= 0) {
         clearInterval(id);
-        router.push({ pathname: "/session/[id]", params: { id: startAt, goal} })
+        router.replace({ pathname: "/session/[id]", params: { id: startAt, goal} })
       }
     }, 100);
     return () => {
