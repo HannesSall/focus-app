@@ -1,13 +1,16 @@
-import { router, useLocalSearchParams } from "expo-router";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize } from "@/constants/theme";
+import { useSessions } from "@/state/sessions";
 
-export default function Timer() {
-  const params = useLocalSearchParams<{ durationMs: string, goal: string }>();
-  const durationMs = Number(params.durationMs);
-  const goal = params.goal;
+// id tas emot som prop från focus.tsx: <Timer id={id} />
+export default function Timer({ id }: { id: string }) {
+  // hämta passet ur lådan med id:t
+  const { getSession } = useSessions();
+  const session = getSession(id);
+  const durationMs = session ? session.durationMin * 60000 : 0;
 
   // sparas en gång när sidan öppnas
   const [startAt] = useState(Date.now());
@@ -19,18 +22,22 @@ export default function Timer() {
   const secondsLeft = totalSecondsLeft -(minutesLeft * 60); 
 
   useEffect(() => {
-    const id = setInterval(() => {
+    // vänta tills passet har hittats i listan
+    if (durationMs === 0) return;
+
+    // intervalId (inte id) så att det inte krockar med passets id
+    const intervalId = setInterval(() => {
       const seconds = checkTimer(startAt, durationMs);
-      // tiden är slut → sluta ticka
+      // tiden är slut → sluta ticka och gå till resultatet för passet
       if (seconds <= 0) {
-        clearInterval(id);
-        router.replace({ pathname: "/session/[id]", params: { id: startAt, goal} })
+        clearInterval(intervalId);
+        router.replace({ pathname: "/session/[id]", params: { id } });
       }
     }, 100);
     return () => {
-      clearInterval(id);
+      clearInterval(intervalId);
     };
-  }, []);
+  }, [durationMs]);
 
 
   const minutesText = String(minutesLeft);

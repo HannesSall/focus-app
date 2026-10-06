@@ -5,14 +5,24 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { useSessions } from "@/state/sessions";
 
 export default function Setup() {
+  // hämta funktionen ur lådan
+  const { createSession } = useSessions();
+
   const [durationMin, setDurationMin] = useState(25);
 
   const [goal, setGoal] = useState<string>("");
 
   // räknas fram: tomt mål (eller bara mellanslag) → går inte att starta
   const canStart = goal.trim() !== "";
+
+  // skapar passet i Context och skickar bara id:t vidare till focus
+  function startSession(minutes: number, sessionGoal: string) {
+    const id = createSession(sessionGoal, minutes);
+    router.push({ pathname: "/focus", params: { id } });
+  }
 
   return (
     <View style={styles.container}>
@@ -43,9 +53,7 @@ export default function Setup() {
       <Pressable
         style={[styles.startButton, !canStart && styles.startButtonDisabled]}
         disabled={!canStart}
-        onPress={() =>
-          router.push({ pathname: "/focus", params: { durationMs: durationMin * 60000, goal: goal.trim() } })
-        }
+        onPress={() => startSession(durationMin, goal.trim())}
       >
         <Text style={styles.startButtonText}>Starta timer</Text>
       </Pressable>
@@ -54,9 +62,7 @@ export default function Setup() {
       {/* TEST: syns bara i utvecklingsläge (__DEV__), aldrig i en färdig app */}
       {__DEV__ && (
         <Pressable
-          onPress={() =>
-            router.push({ pathname: "/focus", params: { durationMs: 10000, goal: goal || "Testpass" } })
-          }
+          onPress={() => startSession(10 / 60, goal.trim() || "Testpass")}
         >
           <Text style={styles.text}>Testa 10 s</Text>
         </Pressable>

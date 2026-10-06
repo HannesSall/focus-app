@@ -1,5 +1,6 @@
 // timern går
 
+import { useLocalSearchParams } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import Timer from "@/components/timer";
@@ -13,11 +14,16 @@ const RULES = [
   { text: "Varje hel minut du gjort det du skulle", points: "+1" },
 ];
 
+
 export default function Focus() {
+  // skärmen läser adressen /focus?id=… …
+  const { id } = useLocalSearchParams<{ id: string }>();
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Fokus pågår</Text>
-      <Timer />
+      {/* … och skickar id:t vidare till timern som prop */}
+      <Timer id={id} />
 
       <View style={styles.rules}>
         {RULES.map((rule) => (

@@ -1,22 +1,36 @@
 // kontroll: gjorde du det som var planerat?
 
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "@/constants/theme";
+import { useSessions } from "@/state/sessions";
 
 export default function SessionResult() {
-  const params = useLocalSearchParams<{
-    id: string;
-    goal: string;
-  }>();
-  const goal = params.goal;
+  // adressen säger VILKET pass, lådan har resten
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { getSession, completeSession } = useSessions();
+  const session = getSession(id);
 
-  // undefined = inte svarat än, true = Ja, false = Nej
-  const [goalCompleted, setGoalCompleted] = useState<boolean | undefined>(undefined);
+  // passet finns inte (t.ex. om appen startats om)
+  if (!session) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.question}>Passet hittades inte</Text>
+      </View>
+    );
+  }
+
+  const goal = session.goal;
+  // svaret läses från passet: undefined = inte svarat än, true = Ja, false = Nej
+  const goalCompleted = session.goalCompleted;
   // räknas fram: har man svarat?
   const submitted = goalCompleted !== undefined;
+
+  // sparar svaret i passet → sidan ritas om och visar "efter svaret"
+  function setGoalCompleted(completed: boolean) {
+    completeSession(id, completed);
+  }
 
   return (
     <View style={styles.container}>
