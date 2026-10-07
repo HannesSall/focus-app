@@ -1,28 +1,35 @@
 // Känner av när man lämnar appen och kommer tillbaka (AppState från React Native)
-// När man kommer tillbaka får onReturn veta hur länge man var borta.
+// - onLeave: körs direkt när man lämnar appen
+// - onReturn: körs när man kommer tillbaka, med hur länge man var borta
 
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 
-export function useLeaveDetection(onReturn: (awayMs: number) => void) {
+type LeaveHandlers = {
+  onLeave: () => void;
+  onReturn: (awayMs: number) => void;
+};
+
+export function useLeaveDetection(handlers: LeaveHandlers) {
   // När man lämnade appen (null = man är i appen)
   const leftAt = useRef<number | null>(null);
-  // Senaste versionen av onReturn (komponenten skickar en ny funktion vid varje rendering)
-  const onReturnRef = useRef(onReturn);
+  // Senaste versionen av funktionerna (komponenten skickar nya vid varje rendering)
+  const handlersRef = useRef(handlers);
   useEffect(() => {
-    onReturnRef.current = onReturn;
+    handlersRef.current = handlers;
   });
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "background") {
-        // man lämnade appen: kom ihåg när
+      if (state === "background" && leftAt.current === null) {
+        // man lämnade appen: kom ihåg när, och säg till direkt
         leftAt.current = Date.now();
+        handlersRef.current.onLeave();
       } else if (state === "active" && leftAt.current !== null) {
         // man kom tillbaka: räkna ut hur länge man var borta
         const awayMs = Date.now() - leftAt.current;
         leftAt.current = null;
-        onReturnRef.current(awayMs);
+        handlersRef.current.onReturn(awayMs);
       }
     });
 

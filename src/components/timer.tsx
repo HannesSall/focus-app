@@ -54,18 +54,36 @@ export default function Timer({ id, durationMin }: { id: string; durationMin: nu
   const remainingMs = Math.max(0, durationMs - focusedMs);
   const isDone = remainingMs === 0;
 
-  // Man lämnade appen och kom tillbaka efter awayMs millisekunder
-  useLeaveDetection((awayMs) => {
-    if (isDone) return;
+  // Är man utanför appen just nu? (useRef: behöver inte rita om skärmen)
+  const isAway = useRef(false);
 
-    // tiden borta räknas inte: flytta fram starttiden lika mycket som man var borta
-    setRunningSince((prev) => (prev === null ? null : prev + awayMs));
+  useLeaveDetection({
+    // Man lämnade appen → pausa direkt, så att tiden borta inte räknas
+    // (Android fortsätter köra appen en stund i bakgrunden, timern skulle annars ticka vidare)
+    onLeave: () => {
+      isAway.current = true;
+      if (runningSince !== null) {
+        setSavedMs((prev) => prev + (Date.now() - runningSince));
+        setRunningSince(null);
+      }
+    },
 
-    // borta längre än nådatiden → avdrag
-    if (awayMs > LEAVE_GRACE_MS) {
-      addLeave(id);
-      vibrate(Haptics.NotificationFeedbackType.Error);
-    }
+    // Man kom tillbaka efter awayMs millisekunder
+    onReturn: (awayMs) => {
+      isAway.current = false;
+
+      // borta längre än nådatiden → avdrag
+      if (awayMs > LEAVE_GRACE_MS) {
+        addLeave(id);
+        vibrate(Haptics.NotificationFeedbackType.Error);
+      }
+
+      // ligger telefonen fortfarande nedåt → fortsätt direkt
+      if (isFaceDown) {
+        setRunningSince(Date.now());
+        setNow(Date.now());
+      }
+    },
   });
 
   // 1. Telefonen läggs ned eller vänds upp → starta, fortsätt eller pausa
@@ -74,7 +92,8 @@ export default function Timer({ id, durationMin }: { id: string; durationMin: nu
   // effekten köras om direkt efter att den satt runningSince, och starta om perioden i en loop.
   /* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps */
   useEffect(() => {
-    if (isDone) return;
+    // klar, eller utanför appen (då sköter onLeave/onReturn timern)
+    if (isDone || isAway.current) return;
 
     if (isFaceDown) {
       // nedåt → timern går (första gången startar den, sedan fortsätter den)
@@ -135,12 +154,12 @@ export default function Timer({ id, durationMin }: { id: string; durationMin: nu
       {penalty > 0 && <Text style={styles.penalty}>Avdrag hittills: −{penalty}</Text>}
 
       {/* TEST: sensorvärden, syns bara i utvecklingsläge */}
-      {__DEV__ && (
+      
         <Text style={styles.debug}>
           z: {z.toFixed(2)} · ljus: {lux === null ? "–" : `${Math.round(lux)} lx`} · nedåt:{" "}
           {isFaceDown ? "ja" : "nej"}
         </Text>
-      )}
+      
     </View>
   );
 }
